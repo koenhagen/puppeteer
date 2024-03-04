@@ -5,20 +5,6 @@ permissions: read-all
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    types:
-      # These are the defaults. See
-      # https://docs.github.com/en/actions/using-workflows/events-that-trigger-workflows#pull_request
-      - opened
-      - reopened
-      - synchronize
-
-      # Used for `full-ci`
-      - labeled
-    branches:
-      - '**'
 
 concurrency:
   group: ci-${{ github.head_ref || github.run_id }}
@@ -153,28 +139,8 @@ jobs:
           - ${{ github.event_name == 'pull_request' && !contains(github.head_ref, 'release-please') && !contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         suite:
           - chrome-headless
-          - chrome-headful
-          - chrome-headless-shell
-          - chrome-bidi
         os:
           - ubuntu-latest
-          - windows-latest
-          - macos-latest
-        shard:
-          - 1-2
-          - 2-2
-        exclude:
-          - linux-only: true
-            os: windows-latest
-          - linux-only: true
-            os: macos-latest
-          - linux-only: true
-            suite: chrome-headful
-
-          - os: windows-latest
-            suite: chrome-bidi
-          - os: macos-latest
-            suite: chrome-headful
     steps:
       - name: Check out repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
@@ -219,7 +185,11 @@ jobs:
           PUPPETEER_EXECUTABLE_PATH: ${{ steps.browser.outputs.executablePath }}
       - name: Run all tests (for Linux)
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: xvfb-run --auto-servernum npm run test -- --shard '${{ matrix.shard }}' --test-suite ${{ matrix.suite }} --save-stats-to /tmp/artifacts/${{ github.event_name }}_INSERTID.json
+        uses: koenhagen/measure-energy-action@v0.33
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: xvfb-run --auto-servernum npm run test -- --test-suite ${{ matrix.suite }} --save-stats-to /tmp/artifacts/${{ github.event_name }}_INSERTID.json
+          count: 1
         env:
           PUPPETEER_EXECUTABLE_PATH: ${{ steps.browser.outputs.executablePath }}
       - uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3 # v4.3.1
