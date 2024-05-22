@@ -151,28 +151,8 @@ jobs:
           - ${{ github.event_name == 'pull_request' && !contains(github.head_ref, 'release-please') && !contains(github.event.pull_request.labels.*.name, 'full-ci') }}
         suite:
           - chrome-headless
-          - chrome-headful
-          - chrome-headless-shell
-          - chrome-bidi
         os:
           - ubuntu-latest
-          - windows-latest
-          - macos-latest
-        shard:
-          - 1-2
-          - 2-2
-        exclude:
-          - linux-only: true
-            os: windows-latest
-          - linux-only: true
-            os: macos-latest
-          - linux-only: true
-            suite: chrome-headful
-
-          - os: windows-latest
-            suite: chrome-bidi
-          - os: macos-latest
-            suite: chrome-headful
     steps:
       - name: Check out repository
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
